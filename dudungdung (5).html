@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>🥁 두둥둥!</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f0b1e;color:#f0e6ff;font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;user-select:none}
+.screen{display:none;width:100%;height:100%;position:absolute;top:0;left:0;flex-direction:column;align-items:center;justify-content:center}
+.screen.on{display:flex}
+#t{background:radial-gradient(ellipse at center,#2a1245,#0f0b1e);gap:4px}
+.tcat{font-size:64px;animation:bob .5s ease-in-out infinite alternate}
+@keyframes bob{from{transform:translateY(0) rotate(-5deg)}to{transform:translateY(-10px) rotate(5deg)}}
+.ttl{font-size:52px;font-weight:900;background:linear-gradient(135deg,#f5a623,#ff6b35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.tsub{font-size:14px;color:#4ecdc4;letter-spacing:4px;margin-bottom:6px}
+.save-panel{background:rgba(255,255,255,.05);border:1px solid rgba(245,166,35,.2);border-radius:16px;padding:12px 24px;margin-bottom:10px;text-align:center;min-width:280px}
+.lv-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px}
+.lv-badge{background:linear-gradient(135deg,#f5a623,#ff6b35);color:#0f0b1e;font-size:12px;font-weight:900;padding:2px 10px;border-radius:20px}
+.lv-title{font-size:14px;font-weight:700;color:#f0e6ff}
+.exp-bg{width:180px;height:7px;background:#1e1535;border-radius:4px;overflow:hidden;margin:0 auto 4px}
+.exp-fill{height:100%;background:linear-gradient(90deg,#9b59b6,#f5a623);border-radius:4px;transition:width .4s}
+.save-row{display:flex;justify-content:center;gap:16px;font-size:11px;color:#7a6a8a}
+.save-val{color:#4ecdc4;font-weight:700}
+.daily-bonus{font-size:12px;color:#2ecc71;font-weight:700;margin-top:4px;min-height:16px}
+.chars-row{display:flex;gap:8px;margin-bottom:10px}
+.char-slot{width:48px;height:52px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:22px;gap:1px;border:2px solid}
+.char-slot.unlocked{border-color:rgba(245,166,35,.4);background:rgba(245,166,35,.08)}
+.char-slot.locked{border-color:rgba(255,255,255,.1);background:rgba(255,255,255,.03);filter:grayscale(1);opacity:.4}
+.char-slot span:last-child{font-size:9px;color:#7a6a8a}
+.sbtn{background:linear-gradient(135deg,#f5a623,#ff6b35);border:none;color:#0f0b1e;font-size:20px;font-weight:900;font-family:inherit;padding:13px 48px;border-radius:50px;cursor:pointer;margin-bottom:6px}
+.hint{font-size:12px;color:#7a6a8a;text-align:center;line-height:1.8}
+#g{flex-direction:column;background:#0f0b1e}
+.hud{width:100%;max-width:480px;display:flex;justify-content:space-between;align-items:center;padding:8px 16px 4px;flex-shrink:0}
+.htitle{font-size:14px;font-weight:900;color:#f5a623}
+.combo{text-align:center}
+.cn{font-size:30px;font-weight:900;color:#f5a623;line-height:1;transition:transform .1s}
+.cn.pop{transform:scale(1.4)}
+.cl{font-size:9px;color:#7a6a8a;letter-spacing:2px}
+.sc{text-align:right}
+.sn{font-size:18px;font-weight:700;color:#4ecdc4}
+.sl{font-size:9px;color:#7a6a8a;letter-spacing:2px}
+.cbar-wrap{width:100%;max-width:480px;padding:0 16px 4px;flex-shrink:0}
+.cbar-lbl{font-size:10px;color:#7a6a8a;letter-spacing:2px;margin-bottom:2px}
+.cbar-bg{width:100%;height:10px;background:#1e1535;border-radius:5px;overflow:hidden}
+.cbar-fill{height:100%;background:linear-gradient(90deg,#9b59b6,#f5a623);border-radius:5px;transition:width .3s;width:0%}
+.ccats{font-size:11px;margin-top:2px;min-height:14px;letter-spacing:2px}
+.field{width:100%;max-width:480px;flex:1;position:relative;background:#1a1028;overflow:hidden;border-left:1px solid #2a1f45;border-right:1px solid #2a1f45}
+.hitbar{position:absolute;bottom:100px;left:0;right:0;height:2px;background:rgba(245,166,35,.25);z-index:5;transition:background .1s}
+.hitbar.flash{background:rgba(245,166,35,.9);box-shadow:0 0 12px rgba(245,166,35,.8)}
+.keybts{position:absolute;bottom:0;left:0;right:0;height:100px;display:flex;background:#2a1f45;border-top:2px solid rgba(245,166,35,.2)}
+.kbt{flex:1;border:none;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border-right:1px solid rgba(255,255,255,.04);gap:2px}
+.kbt:last-child{border-right:none}
+.kbt:active,.kbt.pr{background:rgba(245,166,35,.15)}
+.kcat{font-size:24px}
+.klbl{font-size:9px;color:#7a6a8a;font-weight:700}
+.kkey{font-size:9px;color:rgba(255,255,255,.25);background:rgba(255,255,255,.06);padding:1px 4px;border-radius:3px}
+.note{position:absolute;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;z-index:10}
+.particle{position:absolute;pointer-events:none;z-index:15;font-size:12px;animation:pfloat .6s ease-out forwards}
+@keyframes pfloat{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-50px) scale(.5)}}
+.judge{position:absolute;left:50%;bottom:112px;transform:translateX(-50%);font-size:24px;font-weight:900;z-index:20;opacity:0;pointer-events:none;letter-spacing:2px;transition:opacity .3s,transform .3s}
+.sloganpop{position:absolute;top:30%;left:50%;transform:translate(-50%,-50%) scale(0);font-size:20px;font-weight:900;color:#f5a623;background:rgba(15,11,30,.9);border:2px solid #f5a623;padding:7px 20px;border-radius:40px;z-index:30;pointer-events:none;white-space:nowrap;transition:transform .2s,opacity .2s}
+#r{background:radial-gradient(ellipse at center,#2a1245,#0f0b1e);gap:6px}
+.rcats{font-size:40px;letter-spacing:6px;animation:bob .8s ease-in-out infinite}
+.rtitle{font-size:28px;font-weight:900;color:#f5a623;text-align:center}
+.rsub{font-size:13px;color:#4ecdc4;text-align:center;letter-spacing:2px}
+.rstats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0}
+.rbox{background:#1e1535;border-radius:12px;padding:12px 18px;text-align:center}
+.rv{font-size:28px;font-weight:900;color:#f5a623}
+.rk{font-size:9px;color:#7a6a8a;letter-spacing:2px;margin-top:2px}
+.rend{font-size:14px;color:#f0e6ff;text-align:center;max-width:280px;line-height:1.7;padding:12px 18px;background:rgba(255,255,255,.03);border-radius:12px;border-left:3px solid #f5a623}
+.churu-earned{font-size:13px;color:#f5a623;font-weight:700}
+.lvup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:linear-gradient(135deg,#2a1245,#1a1028);border:2px solid #f5a623;border-radius:20px;padding:24px 36px;text-align:center;z-index:100;transition:transform .3s;box-shadow:0 0 40px rgba(245,166,35,.3)}
+.lvup.show{transform:translate(-50%,-50%) scale(1)}
+.lvup-title{font-size:13px;color:#4ecdc4;letter-spacing:3px;margin-bottom:4px}
+.lvup-lv{font-size:48px;font-weight:900;background:linear-gradient(135deg,#f5a623,#ff6b35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.lvup-name{font-size:18px;font-weight:700;color:#f0e6ff;margin-bottom:6px}
+.lvup-cat{font-size:36px;margin-bottom:4px}
+.lvup-bgm{font-size:12px;color:#9b59b6;margin-top:4px}
+.lvup-unlock{font-size:13px;color:#4ecdc4}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(60px);background:#1e1535;border:2px solid #4ecdc4;border-radius:40px;padding:8px 20px;font-size:13px;color:#4ecdc4;font-weight:700;z-index:100;transition:transform .3s,opacity .3s;opacity:0;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.rbtn{background:transparent;border:2px solid #f5a623;color:#f5a623;font-size:16px;font-weight:700;font-family:inherit;padding:10px 32px;border-radius:50px;cursor:pointer;margin-top:4px}
+.rbtn:hover{background:#f5a623;color:#0f0b1e}
+</style>
+</head>
+<body>
+<div id="t" class="screen on">
+  <span class="tcat">🥁😾</span>
+  <div class="ttl">두둥둥!</div>
+  <div class="tsub">츄르 대소동</div>
+  <div class="save-panel">
+    <div class="lv-row">
+      <span class="lv-badge" id="t-lv">Lv.1</span>
+      <span class="lv-title" id="t-lvname">새내기 집사</span>
+    </div>
+    <div class="exp-bg"><div class="exp-fill" id="t-exp" style="width:0%"></div></div>
+    <div class="save-row">
+      <span>최고점수 <span class="save-val" id="t-best">0</span></span>
+      <span>최고콤보 <span class="save-val" id="t-combo">0</span></span>
+      <span>🐟 <span class="save-val" id="t-churu">0</span></span>
+    </div>
+    <div class="daily-bonus" id="t-daily"></div>
+  </div>
+  <div class="chars-row" id="chars-row"></div>
+  <button class="sbtn" id="sbtn">🥁 시작!</button>
+  <div class="hint">키보드: <strong>D F J K</strong> 또는 터치</div>
+</div>
+
+<div id="g" class="screen">
+  <div class="hud">
+    <div class="htitle" id="g-lv">🥁 Lv.1</div>
+    <div class="combo"><div class="cn" id="cn">0</div><div class="cl">COMBO</div></div>
+    <div class="sc"><div class="sn" id="sn">0</div><div class="sl">SCORE</div></div>
+  </div>
+  <div class="cbar-wrap">
+    <div class="cbar-lbl">🐱 응원 게이지</div>
+    <div class="cbar-bg"><div class="cbar-fill" id="cb"></div></div>
+    <div class="ccats" id="cc"></div>
+  </div>
+  <div class="field" id="field">
+    <div class="hitbar" id="hitbar"></div>
+    <div class="keybts">
+      <button class="kbt" id="b0"><span class="kcat" id="kc0">😾</span><span class="klbl">짹짹</span><span class="kkey">D</span></button>
+      <button class="kbt" id="b1"><span class="kcat" id="kc1">🐱</span><span class="klbl">양양</span><span class="kkey">F</span></button>
+      <button class="kbt" id="b2"><span class="kcat" id="kc2">🐱</span><span class="klbl">치치</span><span class="kkey">J</span></button>
+      <button class="kbt" id="b3"><span class="kcat" id="kc3">🐱</span><span class="klbl">표표</span><span class="kkey">K</span></button>
+    </div>
+    <div class="judge" id="jt"></div>
+    <div class="sloganpop" id="sp"></div>
+  </div>
+</div>
+
+<div id="r" class="screen">
+  <div class="rcats" id="rcats">😺😺😺😺😺</div>
+  <div class="rtitle" id="rtitle">츄르 배급 성공!</div>
+  <div class="rsub" id="rsub">모든 고양이가 만족했습니다</div>
+  <div class="rstats">
+    <div class="rbox"><div class="rv" id="rs">0</div><div class="rk">SCORE</div></div>
+    <div class="rbox"><div class="rv" id="rm">0</div><div class="rk">MAX COMBO</div></div>
+    <div class="rbox"><div class="rv" id="rp">0</div><div class="rk">PERFECT</div></div>
+    <div class="rbox"><div class="rv" id="rx">0</div><div class="rk">MISS</div></div>
+  </div>
+  <div class="churu-earned" id="churu-earned">🐟 츄르 +0</div>
+  <div class="rend" id="rend">"생각보다 쉽게 해결됐냥~"</div>
+  <button class="rbtn" onclick="goTitle()">🏠 타운으로</button>
+</div>
+
+<div class="lvup" id="lvup">
+  <div class="lvup-title">LEVEL UP!</div>
+  <div class="lvup-lv" id="lvup-lv">Lv.2</div>
+  <div class="lvup-cat" id="lvup-cat">🎉</div>
+  <div class="lvup-name" id="lvup-name">집사 견습생</div>
+  <div class="lvup-bgm" id="lvup-bgm"></div>
+  <div class="lvup-unlock" id="lvup-unlock"></div>
+</div>
+<div class="toast" id="toast">🐱 해금!</div>
+
+<script>
+// ── 레벨 설정 (10레벨) ──
+const LEVELS=[
+  {lv:1, name:'새내기 집사',    exp:0,    bgm:1},
+  {lv:2, name:'집사 견습생',    exp:100,  bgm:1},
+  {lv:3, name:'츄르 배달부',    exp:250,  bgm:2},
+  {lv:4, name:'냥이 친구',      exp:450,  bgm:2},
+  {lv:5, name:'응원단장',        exp:700,  bgm:3},
+  {lv:6, name:'두둥둥 마스터',  exp:1000, bgm:3},
+  {lv:7, name:'냥페스 DJ',      exp:1400, bgm:4},
+  {lv:8, name:'전설의 집사',    exp:1900, bgm:4},
+  {lv:9, name:'츄르의 수호자',  exp:2500, bgm:5},
+  {lv:10,name:'⭐ 츄르의 신',   exp:3200, bgm:5},
+];
+
+const BGM_NAMES={1:'🥁 심플 비트',2:'🎸 베이스 강화',3:'🎵 멜로디 추가',4:'⚡ 빠른 비트',5:'🔥 두둥둥 완전체'};
+
+const CHARS=[
+  {name:'짹짹',emoji:'😾',unlockLv:1},
+  {name:'양양',emoji:'🐱',unlockLv:2},
+  {name:'치치',emoji:'🐈',unlockLv:5},
+  {name:'표표',emoji:'🐯',unlockLv:8},
+];
+
+const BPM_BY_BGM={1:120,2:128,3:132,4:140,5:150};
+
+const COLORS=['#9b59b6','#4ecdc4','#f5a623','#e74c3c'];
+const KEYS=['D','F','J','K'];
+const SLOGANS=['"츄르 더 주세요냥!"','"북엇국도 좋아냥~"','"같이 놀자냥!"','"츄르는 사랑이다냥!"','"낮잠 공간 확보냥!"'];
+const PATTERN=[[0,0],[1,1],[2,2],[3,3],[0,4],[2,5],[1,6],[3,7],[0,8],[0,9],[1,10],[2,11],[3,12],[1,13],[2,14],[3,15],[0,16],[1,17],[3,18],[2,19],[0,20],[2,21],[0,22],[1,23],[2,24],[3,25],[1,26],[0,27],[3,28],[2,29],[1,30],[3,31],[0,32],[1,33],[2,34],[3,35],[0,36],[3,37],[1,38],[2,39],[0,40],[1,40],[2,41],[3,41],[0,42],[1,42],[2,43],[3,43]];
+const PARTICLE_EMOJIS=['✨','🐟','⭐','💛','🎵'];
+
+// ── 저장 ──
+function getSave(){try{return JSON.parse(localStorage.getItem('dddd')||'null')||{exp:0,bestScore:0,bestCombo:0,churu:0,plays:0,lastDate:''}}catch(e){return{exp:0,bestScore:0,bestCombo:0,churu:0,plays:0,lastDate:''}}}
+function putSave(d){try{localStorage.setItem('dddd',JSON.stringify(d));}catch(e){}}
+
+function getLvInfo(exp){
+  let cur=LEVELS[0];
+  for(const l of LEVELS){if(exp>=l.exp)cur=l;else break;}
+  const idx=LEVELS.indexOf(cur);
+  const next=LEVELS[idx+1];
+  const pct=next?Math.round((exp-cur.exp)/(next.exp-cur.exp)*100):100;
+  return{...cur,next,pct,idx};
+}
+function getUnlocked(lv){return CHARS.filter(c=>c.unlockLv<=lv);}
+function todayStr(){return new Date().toISOString().slice(0,10);}
+function isDailyBonus(){const sv=getSave();return sv.lastDate!==todayStr();}
+
+// ── 타이틀 ──
+function updateTitle(){
+  const sv=getSave();const li=getLvInfo(sv.exp);
+  document.getElementById('t-lv').textContent='Lv.'+li.lv;
+  document.getElementById('t-lvname').textContent=li.name;
+  document.getElementById('t-exp').style.width=li.pct+'%';
+  document.getElementById('t-best').textContent=sv.bestScore;
+  document.getElementById('t-combo').textContent=sv.bestCombo;
+  document.getElementById('t-churu').textContent=sv.churu;
+  document.getElementById('t-daily').textContent=isDailyBonus()?'🎁 오늘 첫 플레이! 츄르 2배':'';
+  const row=document.getElementById('chars-row');row.innerHTML='';
+  CHARS.forEach(c=>{
+    const u=c.unlockLv<=li.lv;
+    const el=document.createElement('div');
+    el.className='char-slot '+(u?'unlocked':'locked');
+    el.innerHTML=`<span>${u?c.emoji:'🔒'}</span><span>${u?c.name:'Lv'+c.unlockLv}</span>`;
+    row.appendChild(el);
+  });
+}
+
+// ── 상태 ──
+let running=false,notes=[],score=0,combo=0,maxCombo=0,crowd=0,perf=0,miss=0;
+let lastT=null,startT=null,nextIdx=0,raf=null,jTO=null,sTO=null;
+let actx=null,beatI=null,beatN=0,curBgm=1,curBpm=120;
+
+// ── 오디오 ──
+function initAudio(){if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)()}
+function noise(dur,freq,vol){
+  if(!actx)return;
+  const t=actx.currentTime,buf=actx.createBuffer(1,actx.sampleRate*dur,actx.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  const s=actx.createBufferSource(),f=actx.createBiquadFilter(),g=actx.createGain();
+  f.type='highpass';f.frequency.value=freq;s.buffer=buf;s.connect(f);f.connect(g);g.connect(actx.destination);
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);s.start(t);s.stop(t+dur);
+}
+function tone(freq,dur,vol,type='sine',slide=0){
+  if(!actx)return;
+  const t=actx.currentTime,o=actx.createOscillator(),g=actx.createGain();
+  o.connect(g);g.connect(actx.destination);o.type=type;o.frequency.setValueAtTime(freq,t);
+  if(slide)o.frequency.exponentialRampToValueAtTime(slide,t+dur);
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.start(t);o.stop(t+dur);
+}
+function kick(){tone(160,.2,.9,'sine',40)}
+function snare(){noise(.1,1500,.55);tone(220,.07,.3)}
+function hat(vol){noise(.04,8000,vol||.22)}
+function bass(f,vol){tone(f,.25,vol||.4,'sawtooth')}
+
+// 멜로디 (bgm3+)
+const MEL_NOTES=[523,587,659,698,784,880];
+let melIdx=0;
+function melNote(){if(!actx)return;const f=MEL_NOTES[melIdx%MEL_NOTES.length];tone(f,.12,.15,'sine');melIdx++;}
+
+// bgm4+ 추가 퍼커션
+function clap(){noise(.08,2000,.4);tone(300,.06,.2)}
+
+function startBGM(bgmLv){
+  if(!actx)return;
+  stopBGM();
+  curBgm=bgmLv;curBpm=BPM_BY_BGM[bgmLv]||120;
+  beatN=0;melIdx=0;
+  const h=(60000/curBpm)/2;
+  function tick(){
+    const b=beatN%8;
+    // 킥
+    if(b===0||b===4||(bgmLv>=4&&b===5)){kick();}
+    // 베이스
+    if(b===0)bass(65,bgmLv>=2?.5:.35);
+    if(b===4)bass(87,bgmLv>=2?.45:.3);
+    if(bgmLv>=3&&b===2)bass(98,.3);
+    // 스네어
+    if(b===2||b===6)snare();
+    // 하이햇 - bgm레벨 오를수록 풍성
+    if(bgmLv===1&&(b===0||b===2||b===4||b===6))hat(.2);
+    if(bgmLv===2)hat(.22);
+    if(bgmLv>=3)hat(.25);
+    // 멜로디 (bgm3+)
+    if(bgmLv>=3&&(b===1||b===3||b===5||b===7))melNote();
+    // 클랩 (bgm4+)
+    if(bgmLv>=4&&(b===2||b===6))clap();
+    // 더블킥 (bgm5)
+    if(bgmLv>=5&&b===3)kick();
+    beatN++;
+  }
+  tick();beatI=setInterval(tick,h);
+}
+function stopBGM(){if(beatI){clearInterval(beatI);beatI=null;}}
+
+function sfxPerfect(){if(!actx)return;[523,659,784].forEach((f,i)=>{const t=actx.currentTime+i*.04,o=actx.createOscillator(),g=actx.createGain();o.connect(g);g.connect(actx.destination);o.frequency.value=f;g.gain.setValueAtTime(.22,t);g.gain.exponentialRampToValueAtTime(.001,t+.12);o.start(t);o.stop(t+.12);})}
+function sfxGood(){tone(440,.1,.18,'sine',550)}
+function sfxMiss(){tone(200,.15,.15,'sawtooth',100)}
+function sfxSlogan(){if(!actx)return;[523,523,659,784].forEach((f,i)=>{const t=actx.currentTime+i*.07,o=actx.createOscillator(),g=actx.createGain();o.connect(g);g.connect(actx.destination);o.frequency.value=f;g.gain.setValueAtTime(.18,t);g.gain.exponentialRampToValueAtTime(.001,t+.09);o.start(t);o.stop(t+.09);})}
+function sfxLevelup(){if(!actx)return;[523,659,784,1047].forEach((f,i)=>{const t=actx.currentTime+i*.1,o=actx.createOscillator(),g=actx.createGain();o.connect(g);g.connect(actx.destination);o.frequency.value=f;g.gain.setValueAtTime(.28,t);g.gain.exponentialRampToValueAtTime(.001,t+.2);o.start(t);o.stop(t+.2);})}
+
+// ── 유틸 ──
+const $=id=>document.getElementById(id);
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$(id).classList.add('on');}
+function fld(){return $('field')}
+function laneX(l){const w=fld().clientWidth;return l*(w/4)+(w/4)*.1;}
+function laneW(){return(fld().clientWidth/4)*.8;}
+
+// ── 파티클 ──
+function spawnParticle(x,y){
+  const f=fld();
+  const count=3;
+  for(let i=0;i<count;i++){
+    const el=document.createElement('div');
+    el.className='particle';
+    el.textContent=PARTICLE_EMOJIS[Math.floor(Math.random()*PARTICLE_EMOJIS.length)];
+    el.style.left=(x+Math.random()*30-15)+'px';
+    el.style.top=(y-10)+'px';
+    el.style.animationDelay=(i*.08)+'s';
+    f.appendChild(el);
+    setTimeout(()=>el.remove(),700);
+  }
+}
+
+// ── 히트존 반짝임 ──
+function flashHit(){
+  const h=$('hitbar');h.classList.add('flash');
+  setTimeout(()=>h.classList.remove('flash'),120);
+}
+
+// ── 게임 시작 ──
+function startGame(){
+  score=0;combo=0;maxCombo=0;crowd=0;perf=0;miss=0;notes=[];nextIdx=0;lastT=null;
+  $('sn').textContent='0';$('cn').textContent='0';$('cb').style.width='0%';$('cc').textContent='';
+  document.querySelectorAll('.note').forEach(n=>n.remove());
+  const sv=getSave();const li=getLvInfo(sv.exp);
+  $('g-lv').textContent='🥁 Lv.'+li.lv;
+  const unlocked=getUnlocked(li.lv);
+  CHARS.forEach((c,i)=>{const kc=$('kc'+i);if(kc)kc.textContent=unlocked[i]?unlocked[i].emoji:c.emoji;});
+  showScreen('g');
+  stopBGM();startBGM(li.bgm);
+  // SPEED 조정 (bgm 레벨 오를수록 살짝 빠르게)
+  curSpeed=SPEED_BY_BGM[li.bgm]||3.2;
+  startT=performance.now();
+  if(raf)cancelAnimationFrame(raf);
+  running=true;raf=requestAnimationFrame(loop);
+}
+
+const SPEED_BY_BGM={1:3.0,2:3.2,3:3.4,4:3.6,5:3.9};
+let curSpeed=3.0;
+
+// ── 노트 스폰 ──
+function spawn(lane){
+  const sv=getSave();const li=getLvInfo(sv.exp);
+  const unlocked=getUnlocked(li.lv);
+  const emoji=unlocked[lane]?unlocked[lane].emoji:CHARS[lane].emoji;
+  const el=document.createElement('div');
+  el.className='note';
+  el.style.cssText=`background:linear-gradient(135deg,${COLORS[lane]}88,${COLORS[lane]}44);border:2px solid ${COLORS[lane]};width:${laneW()}px;left:${laneX(lane)}px;top:-50px;height:44px`;
+  el.innerHTML=`<span style="font-size:18px">${emoji}</span><span style="font-size:11px;font-weight:900;color:#fff">${KEYS[lane]}</span>`;
+  fld().appendChild(el);
+  notes.push({el,lane,y:-50,hit:false});
+}
+
+// ── 루프 ──
+function loop(ts){
+  if(!running)return;
+  if(!lastT)lastT=ts;
+  const dt=ts-lastT;lastT=ts;
+  const elapsed=ts-startT;
+  const fh=fld().clientHeight;
+  const beat=60000/(BPM_BY_BGM[curBgm]||120);
+  while(nextIdx<PATTERN.length){
+    const[l,b]=PATTERN[nextIdx];
+    if(elapsed>=b*beat-(fh/curSpeed)*(1000/60)){spawn(l);nextIdx++;}else break;
+  }
+  const mv=curSpeed*(dt/(1000/60));
+  for(let i=notes.length-1;i>=0;i--){
+    const n=notes[i];n.y+=mv;n.el.style.top=n.y+'px';
+    if(!n.hit&&n.y>fh){n.hit=true;onMiss();n.el.remove();notes.splice(i,1);}
+  }
+  if(nextIdx>=PATTERN.length&&notes.length===0){endGame();return;}
+  raf=requestAnimationFrame(loop);
+}
+
+// ── 키 ──
+function pressKey(l){
+  $('b'+l).classList.add('pr');
+  const fh=fld().clientHeight,hl=fh-100-22;
+  let best=null,bd=9999;
+  for(const n of notes){if(n.lane!==l||n.hit)continue;const d=Math.abs(n.y+22-hl);if(d<bd){bd=d;best=n;}}
+  if(best&&bd<100){
+    best.hit=true;
+    spawnParticle(best.el.offsetLeft+laneW()/2, best.y);
+    best.el.remove();notes.splice(notes.indexOf(best),1);
+    bd<55?onPerf():onGood();
+  }
+}
+function releaseKey(l){$('b'+l).classList.remove('pr');}
+
+// ── 판정 ──
+function onPerf(){score+=100+combo*2;combo++;perf++;if(combo>maxCombo)maxCombo=combo;crowd=Math.min(100,crowd+2);sfxPerfect();flashHit();judge('PERFECT!','#f5a623');hud();chkSlogan();}
+function onGood(){score+=50+combo;combo++;if(combo>maxCombo)maxCombo=combo;crowd=Math.min(100,crowd+1);sfxGood();judge('GOOD!','#4ecdc4');hud();}
+function onMiss(){combo=0;miss++;crowd=Math.max(0,crowd-5);sfxMiss();judge('MISS...','#e74c3c88');hud();}
+
+function judge(txt,col){
+  const e=$('jt');e.textContent=txt;e.style.color=col;e.style.opacity='1';e.style.transform='translateX(-50%) scale(1.2)';e.style.transition='none';
+  if(jTO)clearTimeout(jTO);jTO=setTimeout(()=>{e.style.transition='opacity .3s,transform .3s';e.style.opacity='0';e.style.transform='translateX(-50%) scale(.8)';},400);
+  const c=$('cn');c.classList.add('pop');setTimeout(()=>c.classList.remove('pop'),100);
+}
+function chkSlogan(){
+  if(combo>0&&combo%10===0){
+    sfxSlogan();
+    const e=$('sp'),s=SLOGANS[Math.floor(Math.random()*SLOGANS.length)];
+    e.textContent=s;e.style.transform='translate(-50%,-50%) scale(1)';e.style.opacity='1';
+    if(sTO)clearTimeout(sTO);sTO=setTimeout(()=>{e.style.transform='translate(-50%,-50%) scale(0)';e.style.opacity='0';},1200);
+  }
+}
+function hud(){
+  $('sn').textContent=score;$('cn').textContent=combo;$('cb').style.width=crowd+'%';
+  const n=Math.floor(crowd/10);$('cc').textContent=['😾','🐱','🐱','🐱','😺','🐱','😾','🐱','😺','🐱'].slice(0,n).join('');
+}
+
+// ── 키보드 ──
+const KM={d:0,f:1,j:2,k:3};const held={};
+document.addEventListener('keydown',e=>{const l=KM[e.key.toLowerCase()];if(l!==undefined&&!held[l]){held[l]=true;pressKey(l);}});
+document.addEventListener('keyup',e=>{const l=KM[e.key.toLowerCase()];if(l!==undefined){held[l]=false;releaseKey(l);}});
+[0,1,2,3].forEach(l=>{
+  const b=$('b'+l);
+  b.addEventListener('pointerdown',e=>{e.preventDefault();pressKey(l);});
+  b.addEventListener('pointerup',e=>{e.preventDefault();releaseKey(l);});
+});
+$('sbtn').addEventListener('click',()=>{initAudio();startGame();});
+
+// ── 토스트 ──
+function showToast(msg){const e=$('toast');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2200);}
+
+// ── 레벨업 팝업 ──
+function showLevelUp(li,newChar){
+  sfxLevelup();
+  $('lvup-lv').textContent='Lv.'+li.lv;
+  $('lvup-name').textContent=li.name;
+  $('lvup-cat').textContent=newChar?newChar.emoji:'🎉';
+  $('lvup-bgm').textContent=BGM_NAMES[li.bgm]?' BGM 변경 → '+BGM_NAMES[li.bgm]:'';
+  $('lvup-unlock').textContent=newChar?'🐱 '+newChar.name+' 해금!':'';
+  const el=$('lvup');el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2800);
+  if(newChar)setTimeout(()=>showToast('🐱 '+newChar.name+' 해금!'),3000);
+}
+
+// ── 게임 종료 ──
+function endGame(){
+  running=false;stopBGM();
+  const sv=getSave();
+  const prevLi=getLvInfo(sv.exp);
+  const daily=isDailyBonus();
+  const mul=daily?2:1;
+  const earnedChuru=(Math.floor(score/50)+(maxCombo>=20?5:0)+(miss===0?10:0))*mul;
+  const earnedExp=Math.floor(score/10)+perf*2+(miss===0?30:0);
+  if(daily){sv.lastDate=todayStr();}
+  sv.exp+=earnedExp;sv.churu+=earnedChuru;sv.plays=(sv.plays||0)+1;
+  if(score>sv.bestScore)sv.bestScore=score;
+  if(maxCombo>sv.bestCombo)sv.bestCombo=maxCombo;
+  putSave(sv);
+  const newLi=getLvInfo(sv.exp);
+  $('rs').textContent=score;$('rm').textContent=maxCombo;$('rp').textContent=perf;$('rx').textContent=miss;
+  $('churu-earned').textContent='🐟 츄르 +'+(earnedChuru)+(daily?' (2배 보너스!)':'')+'  ⭐ 경험치 +'+earnedExp;
+  if(miss>10){$('rcats').textContent='🐱🐱🐱';$('rtitle').textContent='낮잠 타임...';$('rsub').textContent='고양이들이 지쳐서 돌아갔습니다';$('rend').textContent='"사실 같이 있는 게 더 좋았냥."';}
+  else if(miss<=5){$('rcats').textContent='😺😺😺😺😺';$('rtitle').textContent='츄르 배급 성공!';$('rsub').textContent='모든 고양이가 만족했습니다';$('rend').textContent='"생각보다 쉽게 해결됐냥~"';}
+  else{$('rcats').textContent='😾😾😺😺🐱';$('rtitle').textContent='아직 배고프냥...';$('rsub').textContent='츄르가 조금 부족했습니다';$('rend').textContent='"다음엔 더 많이 가져오냥!"';}
+  setTimeout(()=>{
+    showScreen('r');
+    if(newLi.lv>prevLi.lv){
+      const newChar=CHARS.find(c=>c.unlockLv===newLi.lv);
+      setTimeout(()=>showLevelUp(newLi,newChar),600);
+    }
+  },500);
+}
+
+function goTitle(){
+  running=false;stopBGM();
+  if(raf)cancelAnimationFrame(raf);
+  document.querySelectorAll('.note').forEach(n=>n.remove());
+  updateTitle();showScreen('t');
+}
+
+updateTitle();
+</script>
+</body>
+</html>
